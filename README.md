@@ -42,3 +42,17 @@ nginx: `danyshpan.xyz` → frontend; `/api` и `/webhook` → backend.
 - Тенанты создаются в админ-панели `/admin` (креды WABA, подписка 20 000 ₸/мес).
 - AI-контекст собирается из данных тенанта: знания (текст из настроек), услуги,
   текущие и будущие записи, часы работы.
+
+## Production (VPS 185.113.132.186)
+
+- `https://danyshpan.xyz` — дашборд; `server.danyshpan.xyz` — алиас (webhook WABA).
+- Развёртывание: `cd /opt/angime && git pull && docker compose up -d --build`.
+- Секреты: `/opt/angime/.env` (НЕ в git).
+- nginx: `/etc/nginx/sites-available/angime` (frontend 3001, backend 8001, SSL letsencrypt).
+- Бэкап БД: `docker exec angime-db pg_dump -U angime angime | gzip > /root/angime_$(date +%F).sql.gz`.
+
+### Первый вход
+
+- Админ: `https://danyshpan.xyz/login` (admin / пароль из .env `ADMIN_PASSWORD`).
+- Клиент (пример): aikerim@danyshpan.xyz / Aikerim2026!
+
