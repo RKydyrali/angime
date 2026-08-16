@@ -1,4 +1,5 @@
 from logging.config import fileConfig
+import os
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
@@ -8,6 +9,13 @@ from app.models import Base
 config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
+# В контейнере/на сервере URL берём из окружения (compose передаёт POSTGRES_URL)
+env_url = os.environ.get("POSTGRES_URL", "")
+if env_url:
+    config.set_main_option(
+        "sqlalchemy.url", env_url.replace("+asyncpg", "+psycopg2")
+    )
 
 target_metadata = Base.metadata
 
