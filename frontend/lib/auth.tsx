@@ -12,11 +12,13 @@ export interface AuthState {
 
 const AuthContext = createContext<{
   auth: AuthState;
+  ready: boolean;
   login: (role: "tenant" | "admin", a: string, b: string) => Promise<void>;
   loginAsTenant: (tenantId: string) => Promise<void>;
   logout: () => void;
 }>({
   auth: { token: null, role: null, name: "", tenantId: null },
+  ready: false,
   login: async () => {},
   loginAsTenant: async () => {},
   logout: () => {},
@@ -39,7 +41,18 @@ function readAuth(): AuthState {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [auth, setAuth] = useState<AuthState>(() => readAuth());
+  const [auth, setAuth] = useState<AuthState>({
+    token: null,
+    role: null,
+    name: "",
+    tenantId: null,
+  });
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setAuth(readAuth());
+    setReady(true);
+  }, []);
 
   const apply = (token: string) => {
     setToken(token);
@@ -73,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ auth, login, loginAsTenant, logout }}>
+    <AuthContext.Provider value={{ auth, ready, login, loginAsTenant, logout }}>
       {children}
     </AuthContext.Provider>
   );

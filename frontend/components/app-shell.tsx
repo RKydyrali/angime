@@ -76,16 +76,16 @@ function NavItems() {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { t, lang, setLang } = useI18n();
-  const { auth, logout } = useAuth();
+  const { auth, ready, logout } = useAuth();
   const router = useRouter();
 
   React.useEffect(() => {
-    if (!auth.token) {
+    if (ready && !auth.token) {
       router.replace("/login");
     }
-  }, [auth.token, router]);
+  }, [ready, auth.token, router]);
 
-  if (!auth.token) {
+  if (!ready || !auth.token) {
     return null;
   }
 
