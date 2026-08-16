@@ -1,7 +1,6 @@
 "use client";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8010";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "";
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -22,6 +21,10 @@ export class ApiError extends Error {
   }
 }
 
+function apiUrl(path: string): string {
+  return API_BASE ? `${API_BASE}${path}` : path;
+}
+
 export async function api<T>(
   path: string,
   options: { method?: string; body?: unknown } = {}
@@ -31,7 +34,7 @@ export async function api<T>(
   if (token) headers["Authorization"] = `Bearer ${token}`;
   if (options.body !== undefined) headers["Content-Type"] = "application/json";
 
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(apiUrl(path), {
     method: options.method || "GET",
     headers,
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,

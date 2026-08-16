@@ -1,0 +1,85 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: angime-db
+    environment:
+      POSTGRES_USER: angime
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-angime}
+      POSTGRES_DB: angime
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U angime -d angime"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - angime-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: angime-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-angime}
+    volumes:
+      - redisdata:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-angime}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - angime-net
+
+  backend:
+    build: ./backend
+    container_name: angime-backend
+    env_file:
+      - .env
+    environment:
+      POSTGRES_URL: postgresql+asyncpg://angime:${POSTGRES_PASSWORD:-angime}@db:5432/angime
+      REDIS_URL: redis://:${REDIS_PASSWORD:-angime}@redis:6379/0
+    ports:
+      - "127.0.0.1:8001:8000"
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - angime-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  frontend:
+    build: ./frontend
+    container_name: angime-frontend
+    ports:
+      - "127.0.0.1:3001:3000"
+    restart: unless-stopped
+    depends_on:
+      - backend
+    networks:
+      - angime-net
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  pgdata:
+  redisdata:
+
+networks:
+  angime-net:
+    driver: bridge
