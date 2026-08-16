@@ -51,7 +51,25 @@ function NavItems() {
     { href: "/settings", icon: GearSix, label: t("nav_settings") },
   ];
   if (auth.role === "admin") {
-    items.push({ href: "/admin", icon: ShieldCheck, label: t("nav_admin") });
+    return (
+      <>
+        {[ { href: "/admin", icon: ShieldCheck, label: t("nav_admin") } ].map(
+          (item) => {
+            const active = pathname === item.href || pathname.startsWith(item.href + "/");
+            return (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton asChild isActive={active} tooltip={item.label}>
+                  <Link href={item.href}>
+                    <item.icon weight={active ? "fill" : "duotone"} className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          }
+        )}
+      </>
+    );
   }
 
   return (
