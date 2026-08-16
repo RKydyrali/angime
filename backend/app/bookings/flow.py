@@ -196,9 +196,14 @@ async def handle_inbound(
         return reply, None
 
     await clear_bf_state(str(tenant.id), sender_id)
-    reply, buttons, _ = await _complete_booking(
+    reply, buttons, kept = await _complete_booking(
         db, tenant, sender_id, client_phone, client_language, merged
     )
+    if kept:
+        # слот занят / услуга не найдена — сохраняем накопленное для продолжения
+        await set_bf_state(
+            str(tenant.id), sender_id, {"booking": kept, "step": "time"}
+        )
     return reply, buttons
 
 
